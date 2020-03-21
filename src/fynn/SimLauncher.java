@@ -6,18 +6,19 @@ import java.util.concurrent.BlockingQueue;
 
 public class SimLauncher {
 
-    public static void main(String[] args) throws Exception{
+    public static void main(String[] args) throws Exception {
 
-        int numParticles = 3;
-        //BlockingQueue<Instance> bq = new ArrayBlockingQueue<Instance>(10);
-        //Simulation simulation = new Simulation(numParticles, bq);
+        int numParticles = 1000;
+        BlockingQueue<Instance> bq = new ArrayBlockingQueue<Instance>(10);
 
-        SimRenderer renderer = new SimRenderer();
-        SimRenderer r2 = new SimRenderer();
-        renderer.start();
-        r2.start();
+        Simulation simulation = new Simulation(numParticles, bq);
+        SimRenderer renderer = new SimRenderer(bq);
+        new Thread(renderer).start();
+        new Thread(simulation).start();
 
-        System.out.println("heloo");
+      //  simulation.addParticles(30);
+
+        System.out.println("jojo");
 
 
     }

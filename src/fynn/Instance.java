@@ -5,7 +5,7 @@ import org.joml.Vector3f;
 import java.util.ArrayList;
 
 public class Instance {
-    private ArrayList<Particle> particles;
+    private static ArrayList<Particle> particles;
     private static long timestamp;
 
     public Instance(ArrayList<Particle> pList, long timestamp) {
@@ -13,6 +13,11 @@ public class Instance {
         this.timestamp = timestamp;
 
 
+    }
+
+    public static void addParticles(ArrayList<Particle> pList){
+        particles.addAll(pList);
+        System.out.println("added " +pList.size() + " particles");
     }
 
     public void setTimestamp(long t) {
@@ -61,5 +66,9 @@ public class Instance {
             p.setPos(p.getPos().add(p.getVel()));
 
         }
+    }
+
+    public int getNumParticles() {
+        return particles.size();
     }
 }

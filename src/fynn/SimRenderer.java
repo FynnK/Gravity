@@ -3,10 +3,9 @@ package fynn;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.glfw.GLFW;
-import org.lwjgl.glfw.GLFWScrollCallback;
 
 import java.nio.FloatBuffer;
+import java.util.concurrent.BlockingQueue;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL30.*;
@@ -19,32 +18,38 @@ public class SimRenderer extends Game {
 
     private int vaoID;
     private int vboID;
-    private int numParticles = 3;
-    Simulation simulation;
-    private float rotation = 0.5f;
+    protected BlockingQueue<Instance> bq = null;
+    private Instance renderInstance;
+    private float rotation = 0.05f;
     Camera cam;
 
+    public SimRenderer(BlockingQueue<Instance> bq) {
+        this.bq = bq;
+    }
+
+    public void updateRenderInstance(){
+        try {
+            renderInstance = bq.take();
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
     public void init() {
-        simulation = new Simulation(numParticles);
         cam = new Camera(new Vector3f(0.0f, 0, 1.0f), new Vector3f(0, 0, 1));
-
-
         glfwSetWindowTitle(Game.getWindowID(), "Graviteeeyyy");
 
         shaderProgram = new ShaderProgram();
-        shaderProgram.attachVertexShader("fynn/vertexShader.glsl");
-        shaderProgram.attachFragmentShader("fynn/fragmentShader.glsl");
+        shaderProgram.attachVertexShader("fynn/shaders/vertexShader.glsl");
+        shaderProgram.attachFragmentShader("fynn/shaders/fragmentShader.glsl");
         shaderProgram.link();
 
-
-        float[] vertices = simulation.getVertices();
+        updateRenderInstance();
+        float[] vertices = renderInstance.getVertices();
         // The vertices of our Points
-
         // Generate and bind a Vertex Array
         vaoID = glGenVertexArrays();
         glBindVertexArray(vaoID);
-
-
         // Create a FloatBuffer of vertices
         FloatBuffer verticesBuffer = BufferUtils.createFloatBuffer(vertices.length);
         verticesBuffer.put(vertices).flip();
@@ -71,14 +76,16 @@ public class SimRenderer extends Game {
 
     public void update(float dt) {
 
-        float[] vertices = simulation.getVertices();
+
+        if(bq.remainingCapacity() < 10){
+            updateRenderInstance();
+        }
+
+
+        float[] vertices = renderInstance.getVertices();
         FloatBuffer verticesBuffer = BufferUtils.createFloatBuffer(vertices.length);
         verticesBuffer.put(vertices).flip();
         glBufferData(GL_ARRAY_BUFFER, verticesBuffer, GL_DYNAMIC_DRAW);
-
-
-
-        simulation.update(dt);
 
     }
 
@@ -121,11 +128,11 @@ public class SimRenderer extends Game {
 
         Matrix4f mvp = cam.getViewMatrix();
         float[] mvpMat = new float[16];
-       // cam.rotateY(rotation);
+        cam.rotateY(rotation);
         cam.getViewMatrix().get(mvpMat);
 
         glUniformMatrix4fv(viewMatrixLocation, false, mvpMat);
-        glDrawArrays(GL_POINTS, 0, numParticles);
+        glDrawArrays(GL_POINTS, 0, renderInstance.getNumParticles());
         // Disable our location
         glDisableVertexAttribArray(0);
         glBindVertexArray(0);
@@ -145,9 +152,5 @@ public class SimRenderer extends Game {
         // Dispose the buffer object
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glDeleteBuffers(vboID);
-    }
-
-    public static void main(String[] args) {
-        new SimRenderer().start();
     }
 }

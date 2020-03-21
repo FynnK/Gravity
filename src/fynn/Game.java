@@ -10,10 +10,15 @@ import static org.lwjgl.system.MemoryUtil.*;
 /**
  * @author Sri Harsha Chilakapati
  */
-public class Game {
+public class Game implements Runnable {
     private static long windowID;
 
-    public Game() {
+    public Game(){
+
+    }
+
+
+    public void createWindow() {
         GLFWErrorCallback.createPrint(System.err).set();
 
         if (!glfwInit()) {
@@ -44,9 +49,6 @@ public class Game {
         glfwSwapInterval(1);
     }
 
-    public static void main(String[] args) {
-        new Game().start();
-    }
 
     public void end() {
         glfwSetWindowShouldClose(windowID, true);
@@ -101,7 +103,11 @@ public class Game {
         return windowID;
     }
 
-    public void start() {
+
+
+    @Override
+    public void run() {
+        createWindow();
         float now, delta, last = 0;
 
         // Set the callbacks
@@ -149,6 +155,4 @@ public class Game {
 
         System.exit(0);
     }
-
-
 }
