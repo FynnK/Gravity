@@ -1,6 +1,10 @@
 package fynn;
 
 
+import fynn.model.Instance;
+import fynn.model.Simulation;
+import fynn.renderer.SimRenderer;
+
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -16,7 +20,7 @@ public class SimLauncher {
         new Thread(renderer).start();
         new Thread(simulation).start();
 
-      //  simulation.addParticles(30);
+        simulation.addParticles(30);
 
         System.out.println("jojo");
 

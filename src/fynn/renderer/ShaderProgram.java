@@ -1,4 +1,6 @@
-package fynn;
+package fynn.renderer;
+
+import fynn.util.FileUtil;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL20.*;

@@ -1,4 +1,4 @@
-package fynn;
+package fynn.model;
 
 import org.joml.Vector3f;
 

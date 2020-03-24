@@ -1,4 +1,4 @@
-package fynn;
+package fynn.renderer;
 
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;

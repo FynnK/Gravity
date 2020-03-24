@@ -1,4 +1,4 @@
-package fynn;
+package fynn.opencl;
 
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;

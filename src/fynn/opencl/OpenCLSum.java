@@ -1,5 +1,6 @@
-package fynn;
+package fynn.opencl;
 
+import fynn.util.FileUtil;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.opencl.CL;
@@ -11,7 +12,7 @@ import org.lwjgl.system.MemoryStack;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
-import static fynn.InfoUtil.checkCLError;
+import static fynn.opencl.InfoUtil.checkCLError;
 import static java.lang.Boolean.TRUE;
 import static org.lwjgl.opencl.CL10.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
@@ -21,7 +22,7 @@ import static org.lwjgl.system.MemoryUtil.memUTF8;
 
 public final class OpenCLSum {
 
-    private static final String sumProgramSource = FileUtil.readFromFile("fynn/sumKernel.c");
+    private static final String sumProgramSource = FileUtil.readFromFile("fynn/opencl/sumKernel.c");
 
     private CLContextCallback clContextCB;
     private long clContext;
@@ -73,6 +74,11 @@ public final class OpenCLSum {
 
 
         // Run the specified number of work units using our OpenCL program kernel
+        errcode = clEnqueueNDRangeKernel(clQueue, clKernel, dimensions, null, globalWorkSize, null,
+                null, null);
+
+        CL10.clFinish(clQueue);
+
         errcode = clEnqueueNDRangeKernel(clQueue, clKernel, dimensions, null, globalWorkSize, null,
                 null, null);
 

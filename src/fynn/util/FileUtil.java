@@ -1,4 +1,6 @@
-package fynn;
+package fynn.util;
+
+import fynn.renderer.ShaderProgram;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;

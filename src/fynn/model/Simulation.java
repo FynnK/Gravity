@@ -1,4 +1,6 @@
-package fynn;
+package fynn.model;
+
+import fynn.util.particleFactory;
 
 import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;

@@ -1,4 +1,4 @@
-package fynn;
+package fynn.renderer;
 
 import org.joml.Vector3f;
 import org.joml.Matrix4f;

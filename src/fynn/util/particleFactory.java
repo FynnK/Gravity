@@ -1,5 +1,7 @@
-package fynn;
+package fynn.util;
 
+import fynn.model.Instance;
+import fynn.model.Particle;
 import org.joml.Random;
 import org.joml.Vector3f;
 
