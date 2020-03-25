@@ -1,4 +1,4 @@
-package fynn.opencl;
+package fynn.model;
 
 import fynn.util.FileUtil;
 import org.lwjgl.BufferUtils;
@@ -18,11 +18,7 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 import static org.lwjgl.system.MemoryUtil.memUTF8;
 
 
-public final class OpenCLSum {
-
-    private static final String sumProgramSource = FileUtil.readFromFile("fynn/opencl/sumKernel.c");
-
-    private CLContextCallback clContextCB;
+public final class ClAccelerator {private CLContextCallback clContextCB;
     private long clContext;
     private IntBuffer errcode_ret;
     private long clKernel;
@@ -35,20 +31,31 @@ public final class OpenCLSum {
     private CLCapabilities clPlatformCapabilities;
     private long resultMemory;
     private static final int size = 10000;
+    private static String sumProgramSource;
+    int errcode;
 
-
-    public void run() {
+    public ClAccelerator(){
         initializeCL();
-    //    CL10GL.clCreateFromGLBuffer();
+        createProgram();
+    }
+
+    private void createProgram() {
+        sumProgramSource = FileUtil.readFromFile("fynn/opencl/sumKernel.c");
 
         sumProgram = CL10.clCreateProgramWithSource(clContext, sumProgramSource, errcode_ret);
-        int errcode = clBuildProgram(sumProgram, clDevice, "", null, NULL);
-        checkCLError(errcode);
 
+        errcode = clBuildProgram(sumProgram, clDevice, "", null, NULL);
+        checkCLError(errcode);
 
         // init kernel with constants
         clKernel = clCreateKernel(sumProgram, "sum", errcode_ret);
         checkCLError(errcode_ret);
+
+    }
+
+
+
+    public void run() {
 
         createMemory();
 
@@ -221,7 +228,7 @@ public final class OpenCLSum {
 
 
     public static void main(String... args) {
-        OpenCLSum clApp = new OpenCLSum();
+        fynn.opencl.OpenCLSum clApp = new fynn.opencl.OpenCLSum();
         clApp.run();
 
 
