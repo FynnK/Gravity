@@ -8,6 +8,7 @@ import org.lwjgl.BufferUtils;
 import java.nio.FloatBuffer;
 import java.util.concurrent.BlockingQueue;
 
+import static fynn.MagicNumbers.rotationConst;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL30.*;
 import static org.lwjgl.opengl.GL32.GL_PROGRAM_POINT_SIZE;
@@ -21,7 +22,6 @@ public class SimRenderer extends Game {
     private int vboID;
     protected BlockingQueue<Instance> bq = null;
     private Instance renderInstance;
-    private float rotation = 0.05f;
     Camera cam;
 
     public SimRenderer(BlockingQueue<Instance> bq) {
@@ -129,7 +129,7 @@ public class SimRenderer extends Game {
 
         Matrix4f mvp = cam.getViewMatrix();
         float[] mvpMat = new float[16];
-        cam.rotateY(rotation);
+        cam.rotateY(rotationConst);
         cam.getViewMatrix().get(mvpMat);
 
         glUniformMatrix4fv(viewMatrixLocation, false, mvpMat);

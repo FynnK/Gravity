@@ -3,6 +3,8 @@ package fynn.renderer;
 import org.joml.Vector3f;
 import org.joml.Matrix4f;
 
+import static fynn.MagicNumbers.cameraScale;
+
 
 public class Camera {
     private Vector3f pos, rot;
@@ -15,7 +17,7 @@ public class Camera {
         this.rot = rot;
         viewMatrix = new Matrix4f();
         projectionMatrix = new Matrix4f();
-        scale = 0.01f;
+        scale = cameraScale;
     }
 
     public Vector3f getPos() {

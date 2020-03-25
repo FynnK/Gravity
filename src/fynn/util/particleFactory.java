@@ -27,7 +27,7 @@ public class particleFactory {
     }
 
     public Vector3f randomVector3() {
-        return new Vector3f(r.nextFloat() - 0.5f, r.nextFloat() - 0.5f, r.nextFloat() - 0.5f);
+        return new Vector3f(r.nextFloat() - 0.5f, r.nextFloat() - 0.5f, r.nextFloat() - 0.5f).mul(2);
     }
 
     public ArrayList createParticles(int num, float pScale, float vScale){

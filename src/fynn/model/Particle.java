@@ -2,6 +2,11 @@ package fynn.model;
 
 import org.joml.Vector3f;
 
+import java.util.ArrayList;
+
+import static fynn.MagicNumbers.bigG;
+import static fynn.MagicNumbers.dT;
+
 
 public class Particle extends centerOM{
 
@@ -41,5 +46,29 @@ public class Particle extends centerOM{
     public void accel(Vector3f cumulForce, float dt) {
         cumulForce.mul(dt);
         vel.add(cumulForce, vel);
+    }
+
+    public void calculateForce(ArrayList<Particle> particles) {
+        Vector3f cumulForce = new Vector3f(0.0f);
+        for (Particle p2 : particles) {
+            if (p2 == this) {
+                continue;
+            }
+
+            Vector3f dir = new Vector3f(0.0f);
+
+            float distsqr = p2.getPos().distanceSquared(getPos());
+
+            p2.getPos().sub(getPos(), dir);
+            dir.normalize();
+            dir.mul(bigG / distsqr);
+            cumulForce.add(dir);
+
+        }
+        accel(cumulForce, dT);
+    }
+
+    public void doTimeStep() {
+
     }
 }

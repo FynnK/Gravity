@@ -3,10 +3,7 @@ package fynn.opencl;
 import fynn.util.FileUtil;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.PointerBuffer;
-import org.lwjgl.opencl.CL;
-import org.lwjgl.opencl.CL10;
-import org.lwjgl.opencl.CLCapabilities;
-import org.lwjgl.opencl.CLContextCallback;
+import org.lwjgl.opencl.*;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.FloatBuffer;
@@ -14,6 +11,7 @@ import java.nio.IntBuffer;
 
 import static fynn.opencl.InfoUtil.checkCLError;
 import static java.lang.Boolean.TRUE;
+import static org.lwjgl.glfw.GLFWNativeWGL.glfwGetWGLContext;
 import static org.lwjgl.opencl.CL10.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.NULL;
@@ -36,11 +34,13 @@ public final class OpenCLSum {
     private long clPlatform;
     private CLCapabilities clPlatformCapabilities;
     private long resultMemory;
-    private static final int size = 100;
+    private static final int size = 10000;
 
 
     public void run() {
         initializeCL();
+    //    CL10GL.clCreateFromGLBuffer();
+
 
 
         sumProgram = CL10.clCreateProgramWithSource(clContext, sumProgramSource, errcode_ret);
@@ -190,9 +190,7 @@ public final class OpenCLSum {
         PointerBuffer ctxProps = BufferUtils.createPointerBuffer(7);
         ctxProps.put(CL_CONTEXT_PLATFORM).put(clPlatform).put(NULL).flip();
 
-        clContext = clCreateContext(ctxProps,
-                clDevice, clContextCB = CLContextCallback.create((errinfo, private_info, cb,
-                                                                  user_data) -> System.out.printf("cl_context_callback\n\tInfo: %s", memUTF8(errinfo))),
+        clContext = clCreateContext(ctxProps, clDevice, clContextCB = CLContextCallback.create((errinfo, private_info, cb,user_data) -> System.out.printf("cl_context_callback\n\tInfo: %s", memUTF8(errinfo))),
                 NULL, errcode_ret);
 
         // create command queue

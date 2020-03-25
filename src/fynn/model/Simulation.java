@@ -5,6 +5,8 @@ import fynn.util.particleFactory;
 import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
 
+import static fynn.MagicNumbers.*;
+
 public class Simulation implements Runnable {
     private Instance renderInstance;
     private Instance workInstance;
@@ -15,20 +17,20 @@ public class Simulation implements Runnable {
 
     public Simulation(int numberOfParticles, BlockingQueue bq) {
         pFact = new particleFactory();
-        workInstance = pFact.createInstance(numberOfParticles, 100, 0.01f);
+        workInstance = pFact.createInstance(numberOfParticles,pScale, vScale);
         renderInstance = workInstance;
         this.bq = bq;
     }
 
     public Simulation(int numberOfParticles) {
         pFact = new particleFactory();
-        workInstance = pFact.createInstance(numberOfParticles, 100, 0.01f);
+        workInstance = pFact.createInstance(numberOfParticles, pScale, vScale);
         renderInstance = workInstance;
 
     }
 
     public void addParticles(int num){
-        ArrayList<Particle> pL = pFact.createParticles(num, 100, 0.1f);
+        ArrayList<Particle> pL = pFact.createParticles(num, pScale, 0.1f);
         workInstance.addParticles(pL);
     }
 
@@ -54,6 +56,7 @@ public class Simulation implements Runnable {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         workInstance.update(dt);
 
     }
@@ -61,7 +64,7 @@ public class Simulation implements Runnable {
     @Override
     public void run() {
         while (running) {
-            update(0.1f);
+            update(dT);
         }
     }
 

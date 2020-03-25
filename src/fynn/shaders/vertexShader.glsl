@@ -6,6 +6,6 @@ uniform mat4 viewMatrix;
 void main()
 {
     gl_Position = viewMatrix * vec4(position, 1.0);
-    gl_PointSize = (1-gl_Position.z)*2.0f +2;
+    gl_PointSize = 2;
 
 }
