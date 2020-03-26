@@ -1,5 +1,6 @@
 package fynn.model;
 
+import fynn.opencl.ClManager;
 import fynn.util.particleFactory;
 
 import java.util.concurrent.BlockingQueue;

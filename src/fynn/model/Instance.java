@@ -1,5 +1,6 @@
 package fynn.model;
 
+import fynn.opencl.ClManager;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 
@@ -47,7 +48,10 @@ public class Instance {
 
 
     public void update(ClManager cl) {
-        posBuffer = cl.runSum(posBuffer,velBuffer);
+        long now = System.currentTimeMillis();
+        //posBuffer = cl.runSum(posBuffer,velBuffer);
+        posBuffer = cl.runGravity(posBuffer,velBuffer);
+        System.out.println("calc took: "+(System.currentTimeMillis()-now)+"ms");
     }
 
 

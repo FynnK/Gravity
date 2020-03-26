@@ -2,7 +2,7 @@
 package fynn;
 
 
-import fynn.model.ClManager;
+import fynn.opencl.ClManager;
 import fynn.model.Instance;
 import fynn.model.Simulation;
 import fynn.renderer.SimRenderer;

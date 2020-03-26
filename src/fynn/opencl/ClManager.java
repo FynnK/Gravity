@@ -1,4 +1,4 @@
-package fynn.model;
+package fynn.opencl;
 
 
 import fynn.util.FileUtil;
@@ -21,7 +21,7 @@ public final class ClManager {
     private CLContextCallback clContextCB;
     private long clContext;
     private IntBuffer errcode_ret;
-    private long clSumKernel;
+
     private long clDevice;
     private long clQueue;
     private long posMemory;
@@ -33,7 +33,10 @@ public final class ClManager {
     int errcode;
     private boolean memInit = false;
 
+    private long clSumKernel;
+    private long clGravityKernel;
     private long sumProgram;
+    private long gravityProgram;
 
 
     public ClManager() {
@@ -41,8 +44,8 @@ public final class ClManager {
     }
 
 
-    private long createProgram(String source) {
-
+    private long createSumProgram() {
+        String source = FileUtil.readFromFile("fynn/opencl/sumKernel.c");
         long clProgram = CL10.clCreateProgramWithSource(clContext, source, errcode_ret);
 
         errcode = clBuildProgram(clProgram, clDevice, "", null, NULL);
@@ -52,32 +55,61 @@ public final class ClManager {
         checkCLError(errcode_ret);
         return clProgram;
     }
+    private long createGravityProgram() {
+
+        String source =  FileUtil.readFromFile("fynn/opencl/gravityKernel.c");
+        long clProgram = CL10.clCreateProgramWithSource(clContext, source, errcode_ret);
+
+        errcode = clBuildProgram(clProgram, clDevice, "", null, NULL);
+        checkCLError(errcode);
+
+        clGravityKernel = clCreateKernel(clProgram, "gravity", errcode_ret);
+        checkCLError(errcode_ret);
+        return clProgram;
+    }
 
     public void init(int num) {
-        sumProgram = createProgram(FileUtil.readFromFile("fynn/opencl/sumKernel.c"));
+        sumProgram = createSumProgram();
+        gravityProgram = createGravityProgram();
+
         size = num * 3;
     }
 
 
-    public FloatBuffer runSum(FloatBuffer a, FloatBuffer b) {
-        copytoMemory(a,b);
+
+
+    public FloatBuffer runSum(FloatBuffer a, FloatBuffer b){
+        copytoMemory(a, b);
 
         final int dimensions = 1;
         PointerBuffer globalWorkSize = BufferUtils.createPointerBuffer(dimensions); // In here we put the total number of work items we want in each dimension.
-
         globalWorkSize.put(0, size); // Size is a variable we defined a while back showing how many
         // elements are in our arrays.
-
         // Run the specified number of work units using our OpenCL program kernel
-        errcode = clEnqueueNDRangeKernel(clQueue, clSumKernel, dimensions, null, globalWorkSize, null,null, null);
+        errcode = clEnqueueNDRangeKernel(clQueue, clSumKernel, dimensions, null, globalWorkSize, null, null, null);
         CL10.clFinish(clQueue);
-
 
         FloatBuffer resultBuff = BufferUtils.createFloatBuffer(size);
         CL10.clEnqueueReadBuffer(clQueue, resultMemory, true, 0, resultBuff, null, null);
-        System.out.println("result at " + 33 + " = " + resultBuff.get(33));
         return resultBuff;
     }
+    public FloatBuffer runGravity(FloatBuffer pos, FloatBuffer vel) {
+        copytoMemory(pos, vel);
+
+        final int dimensions = 1;
+        PointerBuffer globalWorkSize = BufferUtils.createPointerBuffer(dimensions); // In here we put the total number of work items we want in each dimension.
+        globalWorkSize.put(0, size/1000); // Size is a variable we defined a while back showing how many
+        // elements are in our arrays.
+        // Run the specified number of work units using our OpenCL program kernel
+        errcode = clEnqueueNDRangeKernel(clQueue, clGravityKernel, dimensions, null, globalWorkSize, null, null, null);
+        CL10.clFinish(clQueue);
+
+        FloatBuffer resultBuff = BufferUtils.createFloatBuffer(size);
+        CL10.clEnqueueReadBuffer(clQueue, resultMemory, true, 0, resultBuff, null, null);
+        return resultBuff;
+    }
+
+
 
     public void copytoMemory(FloatBuffer pos, FloatBuffer vel) {
         if (memInit == false) {
@@ -90,20 +122,14 @@ public final class ClManager {
 
     private void createMemory(FloatBuffer pos, FloatBuffer vel) {
         // Create OpenCL memory object containing the first buffer's list of numbers
-        posMemory = CL10.clCreateBuffer(clContext, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_COPY_HOST_PTR,
-                pos, errcode_ret);
+        posMemory = CL10.clCreateBuffer(clContext, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_COPY_HOST_PTR,pos, errcode_ret);
         checkCLError(errcode_ret);
 
 
         // Create OpenCL memory object containing the second buffer's list of numbers
-        velMemory = CL10.clCreateBuffer(clContext, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_COPY_HOST_PTR,
-                vel, errcode_ret);
+        velMemory = CL10.clCreateBuffer(clContext, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_COPY_HOST_PTR, vel, errcode_ret);
         checkCLError(errcode_ret);
 
-        System.out.println(pos.get(33));
-        pos.rewind();
-        System.out.println(vel.get(33));
-        vel.rewind();
 
         // Remember the length argument here is in bytes. 4 bytes per float.
         resultMemory = CL10.clCreateBuffer(clContext, CL10.CL_MEM_READ_ONLY, size*4 , errcode_ret);
@@ -113,6 +139,11 @@ public final class ClManager {
         clSetKernelArg1p(clSumKernel, 1, velMemory);
         clSetKernelArg1p(clSumKernel, 2, resultMemory);
         clSetKernelArg1i(clSumKernel, 3, size);
+
+        clSetKernelArg1p(clGravityKernel, 0, posMemory);
+        clSetKernelArg1p(clGravityKernel, 1, velMemory);
+        clSetKernelArg1p(clGravityKernel, 2, resultMemory);
+        clSetKernelArg1i(clGravityKernel, 3, size);
 
         memInit = true;
     }
