@@ -49,8 +49,9 @@ public class Instance {
 
     public void update(ClManager cl) {
         long now = System.currentTimeMillis();
-        //posBuffer = cl.runSum(posBuffer,velBuffer);
         posBuffer = cl.runGravity(posBuffer,velBuffer);
+        velBuffer = cl.getVelBuffer();
+        //posBuffer = cl.runSum(posBuffer,velBuffer);
         System.out.println("calc took: "+(System.currentTimeMillis()-now)+"ms");
     }
 

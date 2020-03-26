@@ -18,7 +18,6 @@ import static org.lwjgl.system.MemoryUtil.memUTF8;
 
 
 public final class ClManager {
-    private CLContextCallback clContextCB;
     private long clContext;
     private IntBuffer errcode_ret;
 
@@ -26,10 +25,11 @@ public final class ClManager {
     private long clQueue;
     private long posMemory;
     private long velMemory;
+    private long velResMemory;
     private long clPlatform;
     private CLCapabilities clPlatformCapabilities;
-    private long resultMemory;
-    private int size;
+    private long posResMemory;
+    private int numFloats;
     int errcode;
     private boolean memInit = false;
 
@@ -37,6 +37,7 @@ public final class ClManager {
     private long clGravityKernel;
     private long sumProgram;
     private long gravityProgram;
+
 
 
     public ClManager() {
@@ -68,29 +69,19 @@ public final class ClManager {
         return clProgram;
     }
 
-    public void init(int num) {
+    public void init(int numParticles) {
         sumProgram = createSumProgram();
         gravityProgram = createGravityProgram();
 
-        size = num * 3;
+        numFloats = numParticles * 3;
     }
 
 
 
 
-    public FloatBuffer runSum(FloatBuffer a, FloatBuffer b){
-        copytoMemory(a, b);
-
-        final int dimensions = 1;
-        PointerBuffer globalWorkSize = BufferUtils.createPointerBuffer(dimensions); // In here we put the total number of work items we want in each dimension.
-        globalWorkSize.put(0, size); // Size is a variable we defined a while back showing how many
-        // elements are in our arrays.
-        // Run the specified number of work units using our OpenCL program kernel
-        errcode = clEnqueueNDRangeKernel(clQueue, clSumKernel, dimensions, null, globalWorkSize, null, null, null);
-        CL10.clFinish(clQueue);
-
-        FloatBuffer resultBuff = BufferUtils.createFloatBuffer(size);
-        CL10.clEnqueueReadBuffer(clQueue, resultMemory, true, 0, resultBuff, null, null);
+    public FloatBuffer getVelBuffer(){
+        FloatBuffer resultBuff = BufferUtils.createFloatBuffer(numFloats);
+        CL10.clEnqueueReadBuffer(clQueue, velResMemory, true, 0, resultBuff, null, null);
         return resultBuff;
     }
     public FloatBuffer runGravity(FloatBuffer pos, FloatBuffer vel) {
@@ -98,21 +89,31 @@ public final class ClManager {
 
         final int dimensions = 1;
         PointerBuffer globalWorkSize = BufferUtils.createPointerBuffer(dimensions); // In here we put the total number of work items we want in each dimension.
-        globalWorkSize.put(0, size/1000); // Size is a variable we defined a while back showing how many
+        globalWorkSize.put(0, numFloats /3); // Size is a variable we defined a while back showing how many
         // elements are in our arrays.
         // Run the specified number of work units using our OpenCL program kernel
         errcode = clEnqueueNDRangeKernel(clQueue, clGravityKernel, dimensions, null, globalWorkSize, null, null, null);
+        try{Thread.sleep(20);}catch(InterruptedException e){e.printStackTrace();}
         CL10.clFinish(clQueue);
 
-        FloatBuffer resultBuff = BufferUtils.createFloatBuffer(size);
-        CL10.clEnqueueReadBuffer(clQueue, resultMemory, true, 0, resultBuff, null, null);
+
+        errcode = clEnqueueNDRangeKernel(clQueue, clSumKernel, dimensions, null, globalWorkSize, null, null, null);
+       // try{Thread.sleep(10);}catch(InterruptedException e){e.printStackTrace();}
+        CL10.clFinish(clQueue);
+
+
+
+
+        FloatBuffer resultBuff = BufferUtils.createFloatBuffer(numFloats);
+        CL10.clEnqueueReadBuffer(clQueue, posResMemory, true, 0, resultBuff, null, null);
         return resultBuff;
     }
 
 
 
+
     public void copytoMemory(FloatBuffer pos, FloatBuffer vel) {
-        if (memInit == false) {
+        if (!memInit) {
             createMemory(pos, vel);
         } else {
             CL10.clEnqueueWriteBuffer(clQueue, posMemory, true,0, pos, null, null);
@@ -132,18 +133,21 @@ public final class ClManager {
 
 
         // Remember the length argument here is in bytes. 4 bytes per float.
-        resultMemory = CL10.clCreateBuffer(clContext, CL10.CL_MEM_READ_ONLY, size*4 , errcode_ret);
+        posResMemory = CL10.clCreateBuffer(clContext, CL10.CL_MEM_READ_ONLY, numFloats *4 , errcode_ret);
+        checkCLError(errcode_ret);
+
+        velResMemory = CL10.clCreateBuffer(clContext, CL_MEM_READ_WRITE, numFloats *4 , errcode_ret);
         checkCLError(errcode_ret);
 
         clSetKernelArg1p(clSumKernel, 0, posMemory);
-        clSetKernelArg1p(clSumKernel, 1, velMemory);
-        clSetKernelArg1p(clSumKernel, 2, resultMemory);
-        clSetKernelArg1i(clSumKernel, 3, size);
+        clSetKernelArg1p(clSumKernel, 1, velResMemory);
+        clSetKernelArg1p(clSumKernel, 2, posResMemory);
+        clSetKernelArg1i(clSumKernel, 3, numFloats);
 
         clSetKernelArg1p(clGravityKernel, 0, posMemory);
         clSetKernelArg1p(clGravityKernel, 1, velMemory);
-        clSetKernelArg1p(clGravityKernel, 2, resultMemory);
-        clSetKernelArg1i(clGravityKernel, 3, size);
+        clSetKernelArg1p(clGravityKernel, 2, velResMemory);
+        clSetKernelArg1i(clGravityKernel, 3, numFloats);
 
         memInit = true;
     }
@@ -157,11 +161,14 @@ public final class ClManager {
         CL10.clReleaseCommandQueue(clQueue);
         CL10.clReleaseKernel(clSumKernel);
         CL10.clReleaseProgram(sumProgram);
+        CL10.clReleaseKernel(clGravityKernel);
+        CL10.clReleaseProgram(gravityProgram);
 
         // Destroy our memory objects
         CL10.clReleaseMemObject(posMemory);
         CL10.clReleaseMemObject(velMemory);
-        CL10.clReleaseMemObject(resultMemory);
+        CL10.clReleaseMemObject(velResMemory);
+        CL10.clReleaseMemObject(posResMemory);
 
         // Not strictly necessary
         CL.destroy();
@@ -189,12 +196,13 @@ public final class ClManager {
         }
 
 
-        clDevice = getDevice(clPlatform, clPlatformCapabilities, CL_DEVICE_TYPE_GPU);
+        clDevice = getDevice(clPlatform, clPlatformCapabilities);
 
         // Create the context
         PointerBuffer ctxProps = BufferUtils.createPointerBuffer(7);
         ctxProps.put(CL_CONTEXT_PLATFORM).put(clPlatform).put(NULL).flip();
 
+        CLContextCallback clContextCB;
         clContext = clCreateContext(ctxProps, clDevice, clContextCB = CLContextCallback.create((errinfo, private_info, cb, user_data) -> System.out.printf("cl_context_callback\n\tInfo: %s", memUTF8(errinfo))),
                 NULL, errcode_ret);
 
@@ -203,13 +211,13 @@ public final class ClManager {
         checkCLError(errcode_ret);
     }
 
-    private static long getDevice(long platform, CLCapabilities platformCaps, int deviceType) {
+    private static long getDevice(long platform, CLCapabilities platformCaps) {
         try (MemoryStack stack = stackPush()) {
             IntBuffer pi = stack.mallocInt(1);
-            checkCLError(clGetDeviceIDs(platform, deviceType, null, pi));
+            checkCLError(clGetDeviceIDs(platform, CL10.CL_DEVICE_TYPE_GPU, null, pi));
 
             PointerBuffer devices = stack.mallocPointer(pi.get(0));
-            checkCLError(clGetDeviceIDs(platform, deviceType, devices, (IntBuffer) null));
+            checkCLError(clGetDeviceIDs(platform, CL10.CL_DEVICE_TYPE_GPU, devices, (IntBuffer) null));
 
             for (int i = 0; i < devices.capacity(); i++) {
                 long device = devices.get(i);

@@ -14,9 +14,9 @@ import static fynn.MagicNumbers.initalNumParticles;
 
 public class SimLauncher {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
 
-        BlockingQueue<Instance> bq = new ArrayBlockingQueue<Instance>(10);
+        BlockingQueue<Instance> bq = new ArrayBlockingQueue<>(10);
 
         ClManager clmanager = new ClManager();
 
