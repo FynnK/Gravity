@@ -76,11 +76,6 @@ public final class OpenCLSum {
 
         CL10.clFinish(clQueue);
 
-        errcode = clEnqueueNDRangeKernel(clQueue, clKernel, dimensions, null, globalWorkSize, null,
-                null, null);
-
-        CL10.clFinish(clQueue);
-
         printResults();
 
         cleanup();
