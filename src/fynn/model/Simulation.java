@@ -1,41 +1,34 @@
 package fynn.model;
 
 import fynn.util.particleFactory;
-import org.lwjgl.BufferUtils;
-import org.lwjgl.PointerBuffer;
-import org.lwjgl.opencl.CL;
-import org.lwjgl.opencl.CLCapabilities;
-import org.lwjgl.system.MemoryStack;
 
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
 
 import static fynn.MagicNumbers.*;
 import static fynn.opencl.InfoUtil.checkCLError;
 import static org.lwjgl.opencl.CL10.clGetDeviceIDs;
 import static org.lwjgl.opencl.CL10.clGetPlatformIDs;
-import static org.lwjgl.system.MemoryStack.stackPush;
-import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Simulation implements Runnable {
     private Instance renderInstance;
     private Instance workInstance;
     particleFactory pFact;
-    ClAccelerator clAcc;
+    ClManager clmgr;
 
-    BlockingQueue bq = null;
+    BlockingQueue bq;
     boolean running = true;
 
-    public Simulation(int numberOfParticles, BlockingQueue bq) {
+    public Simulation(int numberOfParticles, BlockingQueue bq, ClManager cl) {
+        this.clmgr = cl;
         pFact = new particleFactory();
-        clAcc = new ClAccelerator();
         workInstance = pFact.createInstance(numberOfParticles,pScale, vScale);
         renderInstance = workInstance;
         this.bq = bq;
     }
 
+    public void stop(){
+        running = false;
+    }
 
 
     public void update(float dt) {
@@ -56,18 +49,18 @@ public class Simulation implements Runnable {
             e.printStackTrace();
         }
 
-        workInstance.update(clAcc);
+        workInstance.update(clmgr);
 
     }
 
     @Override
     public void run() {
-        clAcc.init(renderInstance.getNumParticles());
+        clmgr.init(renderInstance.getNumParticles());
 
         while (running) {
             update(dT);
         }
-        clAcc.destroy();
+        clmgr.destroy();
     }
 
 }

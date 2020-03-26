@@ -6,8 +6,6 @@ import org.lwjgl.BufferUtils;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 
-import static fynn.MagicNumbers.dT;
-
 public class Instance {
     private ArrayList<Particle> particles;
 
@@ -48,9 +46,8 @@ public class Instance {
 
 
 
-    public void update(ClAccelerator clAcc) {
-        clAcc.copytoMemory(posBuffer,velBuffer);
-        posBuffer = clAcc.add();
+    public void update(ClManager cl) {
+        posBuffer = cl.runSum(posBuffer,velBuffer);
     }
 
 
