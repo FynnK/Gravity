@@ -6,18 +6,19 @@ import org.lwjgl.PointerBuffer;
 import org.lwjgl.opencl.*;
 import org.lwjgl.system.MemoryStack;
 
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import static fynn.opencl.InfoUtil.checkCLError;
-import static org.lwjgl.glfw.GLFWNativeWGL.glfwGetWGLContext;
 import static org.lwjgl.opencl.CL10.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.NULL;
 import static org.lwjgl.system.MemoryUtil.memUTF8;
 
 
-public final class ClAccelerator {private CLContextCallback clContextCB;
+public final class ClAccelerator {
+    private CLContextCallback clContextCB;
     private long clContext;
     private IntBuffer errcode_ret;
     private long clKernel;
@@ -32,13 +33,14 @@ public final class ClAccelerator {private CLContextCallback clContextCB;
     private int size;
     private static String sumProgramSource;
     int errcode;
+    private boolean memInit = false;
 
 
-    public ClAccelerator(){
+    public ClAccelerator() {
         initializeCL();
     }
 
-    public void setSize(int size){
+    public void setSize(int size) {
         this.size = size;
     }
 
@@ -55,12 +57,12 @@ public final class ClAccelerator {private CLContextCallback clContextCB;
         checkCLError(errcode_ret);
 
     }
-    public void init(int num){
+
+    public void init(int num) {
         createProgram();
         size = num * 3;
 
     }
-
 
 
     public FloatBuffer add() {
@@ -90,6 +92,16 @@ public final class ClAccelerator {private CLContextCallback clContextCB;
         return resultBuff;
     }
 
+    public void copytoMemory(FloatBuffer pos, FloatBuffer vel) {
+        if (memInit == false) {
+            createMemory(pos, vel);
+        } else {
+            CL10.clEnqueueWriteBuffer(clQueue, aMemory, true,0, pos, null, null);
+            CL10.clEnqueueWriteBuffer(clQueue, bMemory, true,0, vel, null, null);
+        }
+
+    }
+
 
     public void createMemory(FloatBuffer pos, FloatBuffer vel) {
         // Create OpenCL memory object containing the first buffer's list of numbers
@@ -116,6 +128,8 @@ public final class ClAccelerator {private CLContextCallback clContextCB;
         clSetKernelArg1p(clKernel, 1, bMemory);
         clSetKernelArg1p(clKernel, 2, resultMemory);
         clSetKernelArg1i(clKernel, 3, size);
+
+        memInit = true;
     }
 
     private FloatBuffer getABuffer() {
@@ -147,7 +161,7 @@ public final class ClAccelerator {private CLContextCallback clContextCB;
         return bBuff;
     }
 
-    public void destroy(){
+    public void destroy() {
         cleanup();
     }
 
@@ -194,7 +208,7 @@ public final class ClAccelerator {private CLContextCallback clContextCB;
         PointerBuffer ctxProps = BufferUtils.createPointerBuffer(7);
         ctxProps.put(CL_CONTEXT_PLATFORM).put(clPlatform).put(NULL).flip();
 
-        clContext = clCreateContext(ctxProps, clDevice, clContextCB = CLContextCallback.create((errinfo, private_info, cb,user_data) -> System.out.printf("cl_context_callback\n\tInfo: %s", memUTF8(errinfo))),
+        clContext = clCreateContext(ctxProps, clDevice, clContextCB = CLContextCallback.create((errinfo, private_info, cb, user_data) -> System.out.printf("cl_context_callback\n\tInfo: %s", memUTF8(errinfo))),
                 NULL, errcode_ret);
 
         // create command queue
@@ -224,7 +238,6 @@ public final class ClAccelerator {private CLContextCallback clContextCB;
 
         return NULL;
     }
-
 
 
 }

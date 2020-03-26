@@ -62,6 +62,8 @@ public class Simulation implements Runnable {
 
     @Override
     public void run() {
+        clAcc.init(renderInstance.getNumParticles());
+
         while (running) {
             update(dT);
         }

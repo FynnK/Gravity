@@ -49,10 +49,7 @@ public class Instance {
 
 
     public void update(ClAccelerator clAcc) {
-
-        clAcc.init(particles.size());
-        clAcc.createMemory(posBuffer,velBuffer);
-
+        clAcc.copytoMemory(posBuffer,velBuffer);
         posBuffer = clAcc.add();
     }
 
