@@ -10,7 +10,6 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import static fynn.opencl.InfoUtil.checkCLError;
-import static java.lang.Boolean.TRUE;
 import static org.lwjgl.glfw.GLFWNativeWGL.glfwGetWGLContext;
 import static org.lwjgl.opencl.CL10.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
@@ -30,13 +29,17 @@ public final class ClAccelerator {private CLContextCallback clContextCB;
     private long clPlatform;
     private CLCapabilities clPlatformCapabilities;
     private long resultMemory;
-    private static final int size = 10000;
+    private int size;
     private static String sumProgramSource;
     int errcode;
 
+
     public ClAccelerator(){
         initializeCL();
-        createProgram();
+    }
+
+    public void setSize(int size){
+        this.size = size;
     }
 
     private void createProgram() {
@@ -52,27 +55,19 @@ public final class ClAccelerator {private CLContextCallback clContextCB;
         checkCLError(errcode_ret);
 
     }
+    public void init(int num){
+        createProgram();
+        size = num * 3;
+
+    }
 
 
 
-    public void run() {
-
-        createMemory();
-
-
-        clSetKernelArg1p(clKernel, 0, aMemory);
-        clSetKernelArg1p(clKernel, 1, bMemory);
-        clSetKernelArg1p(clKernel, 2, resultMemory);
-        clSetKernelArg1i(clKernel, 3, size);
-
-
+    public FloatBuffer add() {
 
         final int dimensions = 1;
-        PointerBuffer globalWorkSize = BufferUtils.createPointerBuffer(dimensions); // In here we put
-        // the total number
-        // of work items we
-        // want in each
-        // dimension.
+        PointerBuffer globalWorkSize = BufferUtils.createPointerBuffer(dimensions); // In here we put the total number of work items we want in each dimension.
+
         globalWorkSize.put(0, size); // Size is a variable we defined a while back showing how many
         // elements are in our arrays.
 
@@ -83,49 +78,51 @@ public final class ClAccelerator {private CLContextCallback clContextCB;
 
         CL10.clFinish(clQueue);
 
-        errcode = clEnqueueNDRangeKernel(clQueue, clKernel, dimensions, null, globalWorkSize, null,
-                null, null);
-
-        CL10.clFinish(clQueue);
-
-        printResults();
-
-        cleanup();
-    }
-
-    private void printResults() {
-        // This reads the result memory buffer
         FloatBuffer resultBuff = BufferUtils.createFloatBuffer(size);
         // We read the buffer in blocking mode so that when the method returns we know that the result
         // buffer is full
-        CL10.clEnqueueReadBuffer(clQueue, resultMemory, TRUE, 0, resultBuff, null, null);
+        CL10.clEnqueueReadBuffer(clQueue, resultMemory, true, 0, resultBuff, null, null);
 
-        // Print the values in the result buffer
-        for (int i = 0; i < resultBuff.capacity(); i++) {
-            System.out.println("result at " + i + " = " + resultBuff.get(i));
-        }
-        // This should print out 100 lines of result floats, each being 99.
+
+        System.out.println("result at " + 33 + " = " + resultBuff.get(33));
+
+
+        return resultBuff;
     }
 
-    private void createMemory() {
+
+    public void createMemory(FloatBuffer pos, FloatBuffer vel) {
         // Create OpenCL memory object containing the first buffer's list of numbers
         aMemory = CL10.clCreateBuffer(clContext, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_COPY_HOST_PTR,
-                getABuffer(), errcode_ret);
+                pos, errcode_ret);
         checkCLError(errcode_ret);
+
 
         // Create OpenCL memory object containing the second buffer's list of numbers
         bMemory = CL10.clCreateBuffer(clContext, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_COPY_HOST_PTR,
-                getBBuffer(), errcode_ret);
+                vel, errcode_ret);
         checkCLError(errcode_ret);
+
+        System.out.println(pos.get(33));
+        pos.rewind();
+        System.out.println(vel.get(33));
+        vel.rewind();
 
         // Remember the length argument here is in bytes. 4 bytes per float.
         resultMemory = CL10.clCreateBuffer(clContext, CL10.CL_MEM_READ_ONLY, size * 4, errcode_ret);
         checkCLError(errcode_ret);
+
+        clSetKernelArg1p(clKernel, 0, aMemory);
+        clSetKernelArg1p(clKernel, 1, bMemory);
+        clSetKernelArg1p(clKernel, 2, resultMemory);
+        clSetKernelArg1i(clKernel, 3, size);
     }
 
     private FloatBuffer getABuffer() {
         // Create float array from 0 to size-1.
         FloatBuffer aBuff = BufferUtils.createFloatBuffer(size);
+
+
         float[] tempData = new float[size];
         for (int i = 0; i < size; i++) {
             tempData[i] = i;
@@ -150,6 +147,9 @@ public final class ClAccelerator {private CLContextCallback clContextCB;
         return bBuff;
     }
 
+    public void destroy(){
+        cleanup();
+    }
 
     private void cleanup() {
         // Destroy our kernel and program
@@ -226,12 +226,5 @@ public final class ClAccelerator {private CLContextCallback clContextCB;
     }
 
 
-
-    public static void main(String... args) {
-        fynn.opencl.OpenCLSum clApp = new fynn.opencl.OpenCLSum();
-        clApp.run();
-
-
-    }
 
 }

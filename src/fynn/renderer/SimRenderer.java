@@ -46,19 +46,16 @@ public class SimRenderer extends Game {
         shaderProgram.link();
 
         updateRenderInstance();
-        float[] vertices = renderInstance.getVertices();
         // The vertices of our Points
         // Generate and bind a Vertex Array
         vaoID = glGenVertexArrays();
         glBindVertexArray(vaoID);
         // Create a FloatBuffer of vertices
-        FloatBuffer verticesBuffer = BufferUtils.createFloatBuffer(vertices.length);
-        verticesBuffer.put(vertices).flip();
 
         // Create a Buffer Object and upload the vertices buffer
         vboID = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
-        glBufferData(GL_ARRAY_BUFFER, verticesBuffer, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, renderInstance.getPosBuffer(), GL_DYNAMIC_DRAW);
 
         // Point the buffer at location 0, the location we set
         // inside the vertex shader. You can use any location
@@ -76,17 +73,10 @@ public class SimRenderer extends Game {
     }
 
     public void update(float dt) {
-
-
         if(bq.remainingCapacity() < 10){
             updateRenderInstance();
         }
-
-
-        float[] vertices = renderInstance.getVertices();
-        FloatBuffer verticesBuffer = BufferUtils.createFloatBuffer(vertices.length);
-        verticesBuffer.put(vertices).flip();
-        glBufferData(GL_ARRAY_BUFFER, verticesBuffer, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, renderInstance.getPosBuffer().rewind(), GL_DYNAMIC_DRAW);
 
     }
 

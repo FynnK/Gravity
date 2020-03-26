@@ -29,22 +29,13 @@ public class Particle extends centerOM{
 
     }
 
-    public void move(float dt) {
-        setPos(pos.add(vel.mul(dt)));
-    }
-
-
     public Vector3f getVel() {
         return vel;
     }
 
-    public void setVel(Vector3f vel) {
-        this.vel = vel;
-    }
-
-    public void accel(Vector3f cumulForce, float dt) {
-        cumulForce.mul(dt);
-        vel.add(cumulForce, vel);
+    public void accel(Vector3f force, float dt) {
+        force.mul(dt);
+        vel = vel.add(force);
     }
 
     public void calculateForce(ArrayList<Particle> particles) {
@@ -67,7 +58,4 @@ public class Particle extends centerOM{
         accel(cumulForce, dT);
     }
 
-    public void doTimeStep() {
-
-    }
 }

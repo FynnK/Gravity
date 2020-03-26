@@ -21,7 +21,7 @@ public class particleFactory {
 
         pList.addAll(createParticles(num, pScale, vScale));
 
-        Instance I = new Instance(pList, System.currentTimeMillis());
+        Instance I = new Instance(pList);
 
         return I;
     }
@@ -32,9 +32,8 @@ public class particleFactory {
 
     public ArrayList createParticles(int num, float pScale, float vScale){
         ArrayList<Particle> pList = new ArrayList<Particle>();
-
         while (pList.size() < num) {
-            pList.add(new Particle(randomVector3().mul(pScale), randomVector3().mul(vScale)));
+            pList.add(new Particle(randomVector3().mul(pScale),randomVector3().mul(vScale)));
         }
         return pList;
     }

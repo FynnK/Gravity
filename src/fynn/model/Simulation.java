@@ -7,6 +7,7 @@ import org.lwjgl.opencl.CL;
 import org.lwjgl.opencl.CLCapabilities;
 import org.lwjgl.system.MemoryStack;
 
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
@@ -36,15 +37,6 @@ public class Simulation implements Runnable {
     }
 
 
-    public void addParticles(int num){
-        ArrayList<Particle> pL = pFact.createParticles(num, pScale, 0.1f);
-        workInstance.addParticles(pL);
-    }
-
-    public float[] getVertices() {
-        return renderInstance.getVertices();
-    }
-
 
     public void update(float dt) {
         if (bq.remainingCapacity() == 0) {
@@ -64,7 +56,7 @@ public class Simulation implements Runnable {
             e.printStackTrace();
         }
 
-        workInstance.update(dt);
+        workInstance.update(clAcc);
 
     }
 
@@ -73,6 +65,7 @@ public class Simulation implements Runnable {
         while (running) {
             update(dT);
         }
+        clAcc.destroy();
     }
 
 }

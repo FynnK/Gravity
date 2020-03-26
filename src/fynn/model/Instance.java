@@ -1,71 +1,64 @@
 package fynn.model;
 
 import org.joml.Vector3f;
+import org.lwjgl.BufferUtils;
 
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 
+import static fynn.MagicNumbers.dT;
+
 public class Instance {
-    private  ArrayList<Particle> particles;
-    private  long timestamp;
+    private ArrayList<Particle> particles;
 
-    public Instance(ArrayList<Particle> pList, long timestamp) {
+    private FloatBuffer posBuffer;
+    private FloatBuffer velBuffer;
+
+    public Instance(ArrayList<Particle> pList) {
         this.particles = pList;
-        this.timestamp = timestamp;
-
-
+        updateBuffers();
     }
 
-    public  void addParticles(ArrayList<Particle> pList){
-        particles.addAll(pList);
-        System.out.println("added " +pList.size() + " particles");
-    }
-
-    public void setTimestamp(long t) {
-        this.timestamp = t;
-    }
-
-    public long getTimestamp() {
-        return timestamp;
-    }
+    private void updateBuffers(){
+        float[] pos = new float[particles.size() * 3];
+        float[] vel = new float[particles.size() * 3];
 
 
-    public float[] getVertices() {
-        float[] data = new float[particles.size() * 3];
         for (int i = 0; i < particles.size(); i++) {
-            data[i * 3 + 0] = particles.get(i).getPos().x;
-            data[i * 3 + 1] = particles.get(i).getPos().y;
-            data[i * 3 + 2] = particles.get(i).getPos().z;
+            Vector3f posV = particles.get(i).getPos();
+            Vector3f velV = particles.get(i).getVel();
+
+            pos[i * 3 + 0] = posV.x;
+            pos[i * 3 + 1] = posV.y;
+            pos[i * 3 + 2] = posV.z;
+
+            vel[i * 3 + 0] = velV.x;
+            vel[i * 3 + 1] = velV.y;
+            vel[i * 3 + 2] = velV.z;
         }
-        return data;
+        FloatBuffer posBufferTemp = BufferUtils.createFloatBuffer(pos.length);
+        FloatBuffer velBufferTemp = BufferUtils.createFloatBuffer(vel.length);
+
+        posBufferTemp.put(pos).flip();
+        velBufferTemp.put(vel).flip();
+
+        posBuffer = posBufferTemp;
+        velBuffer = velBufferTemp;
     }
 
 
-    public void update(float dt) {
-        for (Particle p : this.particles) {
-            Vector3f cumulForce = new Vector3f(0.0f);
 
-            for(Particle p2 : this.particles){
+    public void update(ClAccelerator clAcc) {
 
-                if(p2 == p){continue;}
+        clAcc.init(particles.size());
+        clAcc.createMemory(posBuffer,velBuffer);
 
-                Vector3f pos1 = p.getPos();
-                Vector3f pos2 = p2.getPos();
-                Vector3f dir = new Vector3f(0.0f);
+        posBuffer = clAcc.add();
+    }
 
-                float distsqr = pos2.distanceSquared(pos1);
 
-                pos2.sub(pos1, dir);
-                dir.normalize();
-
-                dir.mul(1/distsqr);
-                cumulForce.add(dir);
-            }
-         p.accel(cumulForce, dt);
-        }
-
-        for (Particle p : this.particles) {
-            p.setPos(p.getPos().add(p.getVel()));
-        }
+    public FloatBuffer getPosBuffer() {
+        return this.posBuffer.rewind();
     }
 
     public int getNumParticles() {

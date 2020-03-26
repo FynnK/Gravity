@@ -20,9 +20,6 @@ public class SimLauncher {
         new Thread(renderer).start();
         new Thread(simulation).start();
 
-
-        simulation.addParticles(30);
-
         System.out.println("jojo");
 
 

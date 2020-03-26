@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import static fynn.MagicNumbers.bigG;
 
 public class centerOM {
-    Vector3f pos;
-    float mass;
+    private Vector3f pos;
+    private float mass;
 
     public centerOM(Vector3f pos, float mass) {
         this.pos = pos;
@@ -21,6 +21,10 @@ public class centerOM {
 
     public void setPos(Vector3f pos) {
         this.pos = pos;
+    }
+
+    public void move(Vector3f dir, float dt){
+        this.pos = pos.add(dir.mul(dt));
     }
 
     public float getMass() {
