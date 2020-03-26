@@ -11,7 +11,6 @@ import static fynn.MagicNumbers.dT;
 public class Particle extends centerOM{
 
 
-    private Vector3f pos;
     private Vector3f vel;
 
     public Particle(Vector3f pos, Vector3f vel, float mass){
