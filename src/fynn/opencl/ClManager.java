@@ -91,16 +91,20 @@ public final class ClManager {
         PointerBuffer globalWorkSize = BufferUtils.createPointerBuffer(dimensions); // In here we put the total number of work items we want in each dimension.
         globalWorkSize.put(0, numFloats /3); // Size is a variable we defined a while back showing how many
         // elements are in our arrays.
+
+        long now = System.currentTimeMillis();
         // Run the specified number of work units using our OpenCL program kernel
         errcode = clEnqueueNDRangeKernel(clQueue, clGravityKernel, dimensions, null, globalWorkSize, null, null, null);
         try{Thread.sleep(20);}catch(InterruptedException e){e.printStackTrace();}
         CL10.clFinish(clQueue);
+        System.out.println("grav: "+ (System.currentTimeMillis()-now)+"ms");
+        now = System.currentTimeMillis();
 
 
         errcode = clEnqueueNDRangeKernel(clQueue, clSumKernel, dimensions, null, globalWorkSize, null, null, null);
        // try{Thread.sleep(10);}catch(InterruptedException e){e.printStackTrace();}
         CL10.clFinish(clQueue);
-
+        System.out.println("sum: "+ (System.currentTimeMillis()-now)+"ms");
 
 
 
@@ -135,6 +139,8 @@ public final class ClManager {
         // Remember the length argument here is in bytes. 4 bytes per float.
         posResMemory = CL10.clCreateBuffer(clContext, CL10.CL_MEM_READ_ONLY, numFloats *4 , errcode_ret);
         checkCLError(errcode_ret);
+
+
 
         velResMemory = CL10.clCreateBuffer(clContext, CL_MEM_READ_WRITE, numFloats *4 , errcode_ret);
         checkCLError(errcode_ret);

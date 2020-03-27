@@ -55,13 +55,13 @@ public class Camera {
 
         viewMatrix.identity();
 
-        viewMatrix.translate(-pos.x, -pos.y, -pos.z);
+
 
         //viewMatrix.perspective(90, 16.0f/9.0f, 1.0f, 10.0f);
 
-        viewMatrix.rotationXYZ((float) Math.toRadians(rot.x), (float) Math.toRadians(rot.y), (float) Math.toRadians(rot.z));
+        viewMatrix.rotationXYZ((float) Math.toRadians(45), (float) Math.toRadians(rot.y), (float) Math.toRadians(rot.z));
 
-
+        viewMatrix.translate(-pos.x, -pos.y, -pos.z);
 
         viewMatrix.scale(scale);
 
@@ -72,4 +72,12 @@ public class Camera {
 
     }
 
+    public void move(Vector3f dir) {
+        pos = pos.add(dir);
+        System.out.println("moved  up");
+    }
+
+    public void rotateX(float v) {
+        rot.x += v;
+    }
 }

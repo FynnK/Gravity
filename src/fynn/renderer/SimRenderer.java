@@ -1,6 +1,7 @@
 package fynn.renderer;
 
 import fynn.model.Instance;
+import fynn.util.InputUtil;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
@@ -17,6 +18,8 @@ import static org.lwjgl.opengl.GL32.GL_PROGRAM_POINT_SIZE;
 public class SimRenderer extends Game {
     private ShaderProgram shaderProgram;
     private int viewMatrixLocation;
+
+    boolean traces = false;
 
     private int vaoID;
     private int vboID;
@@ -37,7 +40,7 @@ public class SimRenderer extends Game {
     }
 
     public void init() {
-        cam = new Camera(new Vector3f(0.0f, 0, 1.0f), new Vector3f(0, 0, 1));
+        cam = new Camera(new Vector3f(0, 0.5f, 0), new Vector3f(0, 0, 0));
         glfwSetWindowTitle(Game.getWindowID(), "Graviteeeyyy");
 
         shaderProgram = new ShaderProgram();
@@ -92,14 +95,28 @@ public class SimRenderer extends Game {
         if (key == GLFW_KEY_2 && action == GLFW_RELEASE) {
             cam.scaleDown();
         }
-    }
+        if (key == GLFW_KEY_3 && action == GLFW_RELEASE) {
+            traces = !traces;
+        }
+        if (key == GLFW_KEY_4 && action == GLFW_RELEASE) {
+            InputUtil.shouldReset = true;
+        }
+        if (key == GLFW_KEY_0 && action == GLFW_RELEASE) {
+            cam.move(new Vector3f(0,1,0));
+        }
+        if (key == GLFW_KEY_9 && action == GLFW_RELEASE) {
+            cam.rotateX(0.1f);
+        }
+
+
+        }
 
     public void mouseScroll(double x, double y) {
         if (y > 0) {
             //cam.scaleUp();
-            cam.rotateY(10);
+            cam.rotateY(5);
         } else {
-            cam.rotateY(-10);
+            cam.rotateY(-5);
             //cam.scaleDown();
         }
     }
@@ -107,6 +124,7 @@ public class SimRenderer extends Game {
 
     public void render(float delta) {
         // Clear the screen
+        if(!traces)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Use our program
@@ -116,8 +134,6 @@ public class SimRenderer extends Game {
         glBindVertexArray(vaoID);
         glEnableVertexAttribArray(0);
 
-
-        Matrix4f mvp = cam.getViewMatrix();
         float[] mvpMat = new float[16];
         cam.rotateY(rotationConst);
         cam.getViewMatrix().get(mvpMat);

@@ -6,10 +6,12 @@ import fynn.util.particleFactory;
 import java.util.concurrent.BlockingQueue;
 
 import static fynn.MagicNumbers.*;
+import static fynn.util.InputUtil.shouldReset;
 
 public class Simulation implements Runnable {
     private Instance renderInstance;
     private Instance workInstance;
+    private int numberOfParticles;
     particleFactory pFact;
     ClManager clmgr;
 
@@ -19,6 +21,7 @@ public class Simulation implements Runnable {
     public Simulation(int numberOfParticles, BlockingQueue<Instance> bq, ClManager cl) {
         this.clmgr = cl;
         pFact = new particleFactory();
+        this.numberOfParticles = numberOfParticles;
         workInstance = pFact.createInstance(numberOfParticles,pScale, vScale);
         renderInstance = workInstance;
         this.bq = bq;
@@ -30,6 +33,12 @@ public class Simulation implements Runnable {
 
 
     public void update(float dt) {
+        if(shouldReset) {
+            workInstance = pFact.createSpiralInstance(numberOfParticles, pScale, vScale);
+            shouldReset = false;
+        }
+
+
         if (bq.remainingCapacity() == 0) {
             try {
                 Thread.sleep(10);

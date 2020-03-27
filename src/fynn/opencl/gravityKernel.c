@@ -1,4 +1,4 @@
-
+#define G 0.006643f
 kernel void gravity(global const float* pos, global const float* vel, global float* result, int const size) {
 
     const int id = get_global_id(0)*3;
@@ -8,23 +8,30 @@ kernel void gravity(global const float* pos, global const float* vel, global flo
     float cumulY = vel[id + 1];
     float cumulZ = vel[id + 2];
 
+    float dx;
+    float dy;
+    float dz;
+
+    float distsqr;
+    float mag;
+
+    float dirX;
+    float dirY;
+    float dirZ;
+
 
     for(i = 0; i < size;i+=3){
         if(i == id){continue;}
-        float dx = pos[i]-pos[id];
-        float dy = pos[i+1]-pos[id+1];
-        float dz = pos[i+2]-pos[id+2];
+        dx = pos[i]-pos[id];
+        dy = pos[i+1]-pos[id+1];
+        dz = pos[i+2]-pos[id+2];
 
-        float distsqr = dx*dx + dy*dy + dz*dz;
-        float mag = sqrt(distsqr);
+        distsqr = dx*dx + dy*dy + dz*dz;
+        mag = sqrt(distsqr);
 
-        float dirX = dx / mag;
-        float dirY = dy / mag;
-        float dirZ = dz / mag;
-
-        cumulX += 0.06643f* dirX / distsqr;
-        cumulY += 0.06643f * dirY / distsqr;
-        cumulZ += 0.06643f * dirZ / distsqr;
+        cumulX += G * (dx/mag) / distsqr;
+        cumulY += G * (dy/mag) / distsqr;
+        cumulZ += G * (dz/mag) / distsqr;
 
     }
 
