@@ -58,7 +58,7 @@ public class SimRenderer extends Game {
         // Create a Buffer Object and upload the vertices buffer
         vboID = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
-        glBufferData(GL_ARRAY_BUFFER, renderInstance.getPosBuffer(), GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, renderInstance.getPosBuffer().rewind(), GL_DYNAMIC_DRAW);
 
         // Point the buffer at location 0, the location we set
         // inside the vertex shader. You can use any location

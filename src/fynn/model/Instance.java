@@ -8,7 +8,7 @@ import java.nio.FloatBuffer;
 import java.util.ArrayList;
 
 public class Instance {
-    private ArrayList<Particle> particles;
+    private final ArrayList<Particle> particles;
 
     private FloatBuffer posBuffer;
     private FloatBuffer velBuffer;
@@ -57,7 +57,7 @@ public class Instance {
 
 
     public FloatBuffer getPosBuffer() {
-        return this.posBuffer.rewind();
+        return this.posBuffer;
     }
 
     public int getNumParticles() {
