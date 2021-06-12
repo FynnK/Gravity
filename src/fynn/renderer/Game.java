@@ -1,6 +1,6 @@
 package fynn.renderer;
 
-import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.GL;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -69,15 +69,15 @@ public class Game implements Runnable {
     }
 
     public void windowFocusChanged(boolean focused) {
-        System.out.println(String.format("Window focus changed: FOCUS = %B", focused));
+        System.out.println("Window focus changed: FOCUS = " + focused);
     }
 
     public void windowIconfyChanged(boolean iconified) {
-        System.out.println(String.format("Window iconified/restored: ICONIFIED = %B", iconified));
+        System.out.println("Window iconified/restored: ICONIFIED = "+ iconified);
     }
 
     public void framebufferResized(int width, int height) {
-        System.out.println(String.format("Framebuffer resized: [%d, %d]", width, height));
+        System.out.println("Framebuffer resized: "+ width+ ", "+ height);
     }
 
     public void keyPressed(int key, int scancode, int action, int mods) {
@@ -119,6 +119,9 @@ public class Game implements Runnable {
         glfwSetFramebufferSizeCallback(windowID, (window, width, height) -> framebufferResized(width, height));
         glfwSetKeyCallback(windowID, (window, key, scancode, action, mods) -> keyPressed(key, scancode, action, mods));
         glfwSetScrollCallback(windowID, (window, xOffset, yOffset) -> mouseScroll(xOffset, yOffset));
+        glfwSetMouseButtonCallback(windowID, (window, button, action, mods) -> mouseButton(button, action, mods));
+        glfwSetCursorPosCallback(windowID, ((window, xpos, ypos) -> mousePos(xpos, ypos)));
+
 
         // Initialize the game
         init();
@@ -142,17 +145,26 @@ public class Game implements Runnable {
         dispose();
 
         // Free the callbacks
-        glfwSetWindowPosCallback(windowID, null).free();
-        glfwSetWindowSizeCallback(windowID, null).free();
-        glfwSetWindowCloseCallback(windowID, null).free();
-        glfwSetWindowFocusCallback(windowID, null).free();
-        glfwSetWindowIconifyCallback(windowID, null).free();
-        glfwSetFramebufferSizeCallback(windowID, null).free();
+
+            glfwSetWindowPosCallback(windowID, null).free();
+            glfwSetWindowSizeCallback(windowID, null).free();
+            glfwSetWindowCloseCallback(windowID, null).free();
+            glfwSetWindowFocusCallback(windowID, null).free();
+            glfwSetWindowIconifyCallback(windowID, null).free();
+            glfwSetFramebufferSizeCallback(windowID, null).free();
+
+
 
         // Destroy the window
         glfwDestroyWindow(windowID);
         glfwTerminate();
 
         System.exit(0);
+    }
+
+    public void mousePos(double xpos, double ypos) {
+    }
+
+    public void mouseButton(int button, int action, int mods) {
     }
 }

@@ -27,11 +27,11 @@ public class Instance {
             Vector3f posV = particles.get(i).getPos();
             Vector3f velV = particles.get(i).getVel();
 
-            pos[i * 3 + 0] = posV.x;
+            pos[i * 3    ] = posV.x;
             pos[i * 3 + 1] = posV.y;
             pos[i * 3 + 2] = posV.z;
 
-            vel[i * 3 + 0] = velV.x;
+            vel[i * 3    ] = velV.x;
             vel[i * 3 + 1] = velV.y;
             vel[i * 3 + 2] = velV.z;
         }
@@ -52,7 +52,7 @@ public class Instance {
         posBuffer = cl.runGravity(posBuffer,velBuffer);
         velBuffer = cl.getVelBuffer();
         //posBuffer = cl.runSum(posBuffer,velBuffer);
-        System.out.println("calc took: "+(System.currentTimeMillis()-now)+"ms");
+        //System.out.println("calc took: "+(System.currentTimeMillis()-now)+"ms");
     }
 
 

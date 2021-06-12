@@ -1,6 +1,7 @@
 package fynn.opencl;
 
 
+import fynn.*;
 import fynn.util.FileUtil;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.PointerBuffer;
@@ -88,9 +89,13 @@ public final class ClManager {
         copytoMemory(pos, vel);
 
         final int dimensions = 1;
+        final int numParticles = numFloats/3;
         PointerBuffer globalWorkSize = BufferUtils.createPointerBuffer(dimensions); // In here we put the total number of work items we want in each dimension.
-        globalWorkSize.put(0, numFloats /3); // Size is a variable we defined a while back showing how many
+        globalWorkSize.put(0, numParticles); // Size is a variable we defined a while back showing how many
+
         // elements are in our arrays.
+
+
 
         long now = System.currentTimeMillis();
         // Run the specified number of work units using our OpenCL program kernel
@@ -104,7 +109,8 @@ public final class ClManager {
         errcode = clEnqueueNDRangeKernel(clQueue, clSumKernel, dimensions, null, globalWorkSize, null, null, null);
        // try{Thread.sleep(10);}catch(InterruptedException e){e.printStackTrace();}
         CL10.clFinish(clQueue);
-        System.out.println("sum: "+ (System.currentTimeMillis()-now)+"ms");
+       System.out.println("sum: "+ (System.currentTimeMillis()-now)+"ms");
+
 
 
 
@@ -154,6 +160,7 @@ public final class ClManager {
         clSetKernelArg1p(clGravityKernel, 1, velMemory);
         clSetKernelArg1p(clGravityKernel, 2, velResMemory);
         clSetKernelArg1i(clGravityKernel, 3, numFloats);
+        clSetKernelArg1f(clGravityKernel, 4, MagicNumbers.bigG);
 
         memInit = true;
     }
@@ -208,8 +215,7 @@ public final class ClManager {
         PointerBuffer ctxProps = BufferUtils.createPointerBuffer(7);
         ctxProps.put(CL_CONTEXT_PLATFORM).put(clPlatform).put(NULL).flip();
 
-        CLContextCallback clContextCB;
-        clContext = clCreateContext(ctxProps, clDevice, clContextCB = CLContextCallback.create((errinfo, private_info, cb, user_data) -> System.out.printf("cl_context_callback\n\tInfo: %s", memUTF8(errinfo))),
+        clContext = clCreateContext(ctxProps, clDevice, CLContextCallback.create((errinfo, private_info, cb, user_data) -> System.out.printf("cl_context_callback\n\tInfo: %s", memUTF8(errinfo))),
                 NULL, errcode_ret);
 
         // create command queue

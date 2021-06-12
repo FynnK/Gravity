@@ -1,7 +1,7 @@
 package fynn.model;
 
 import fynn.opencl.ClManager;
-import fynn.util.particleFactory;
+import fynn.util.*;
 
 import java.util.concurrent.BlockingQueue;
 
@@ -11,7 +11,7 @@ import static fynn.util.InputUtil.shouldReset;
 public class Simulation implements Runnable {
     private Instance renderInstance;
     private Instance workInstance;
-    private int numberOfParticles;
+    private final int numberOfParticles;
     particleFactory pFact;
     ClManager clmgr;
 
@@ -31,10 +31,14 @@ public class Simulation implements Runnable {
         running = false;
     }
 
+    public void setWorkInstance(Instance i){
+        this.workInstance = i;
+    }
+
 
     public void update(float dt) {
         if(shouldReset) {
-            workInstance = pFact.createSpiralInstance(numberOfParticles, pScale, vScale);
+            workInstance = pFact.get(InputUtil.instanceType, numberOfParticles);
             shouldReset = false;
         }
 

@@ -1,34 +1,38 @@
-
 package fynn;
 
 
-import fynn.opencl.ClManager;
-import fynn.model.Instance;
-import fynn.model.Simulation;
-import fynn.renderer.SimRenderer;
+import fynn.model.*;
+import fynn.opencl.*;
+import fynn.renderer.*;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-
-import static fynn.MagicNumbers.initalNumParticles;
+import java.util.concurrent.*;
 
 public class SimLauncher {
 
-    public static void main(String[] args) {
+	public static void main(String[] args) {
 
-        BlockingQueue<Instance> bq = new ArrayBlockingQueue<>(10);
+		BlockingQueue<Instance> bq = new ArrayBlockingQueue<>(10);
 
-        ClManager clmanager = new ClManager();
+		ClManager clmanager = new ClManager();
+		int numP = MagicNumbers.initalNumParticles;
 
-        Simulation simulation = new Simulation(initalNumParticles, bq, clmanager);
-        SimRenderer renderer = new SimRenderer(bq);
-        new Thread(renderer).start();
-        new Thread(simulation).start();
+		if(args.length != 0) {
+            try {
+                numP = Integer.parseInt(args[0]);
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+            }
+        }
 
-        System.out.println("jojo");
+		Simulation simulation = new Simulation(numP, bq, clmanager);
+		SimRenderer renderer = new SimRenderer(bq);
+		new Thread(renderer).start();
+		new Thread(simulation).start();
+
+		System.out.println("jojo");
 
 
-    }
+	}
 
 
 }
