@@ -59,7 +59,7 @@ public final class ClManager {
     }
     private long createGravityProgram() {
 
-        String source =  FileUtil.readFromFile("fynn/opencl/gravityKernel.c");
+        String source =  FileUtil.readFromFile("fynn/opencl/gravityKernelLocal.c");
         long clProgram = CL10.clCreateProgramWithSource(clContext, source, errcode_ret);
 
         errcode = clBuildProgram(clProgram, clDevice, "", null, NULL);
@@ -92,14 +92,15 @@ public final class ClManager {
         final int numParticles = numFloats/3;
         PointerBuffer globalWorkSize = BufferUtils.createPointerBuffer(dimensions); // In here we put the total number of work items we want in each dimension.
         globalWorkSize.put(0, numParticles); // Size is a variable we defined a while back showing how many
+        PointerBuffer localWorkSize = BufferUtils.createPointerBuffer(1);
+        localWorkSize.put(0,128);
+
 
         // elements are in our arrays.
 
-
-
         long now = System.currentTimeMillis();
         // Run the specified number of work units using our OpenCL program kernel
-        errcode = clEnqueueNDRangeKernel(clQueue, clGravityKernel, dimensions, null, globalWorkSize, null, null, null);
+        errcode = clEnqueueNDRangeKernel(clQueue, clGravityKernel, dimensions, null, globalWorkSize, localWorkSize, null, null);
         try{Thread.sleep(20);}catch(InterruptedException e){e.printStackTrace();}
         CL10.clFinish(clQueue);
         System.out.println("grav: "+ (System.currentTimeMillis()-now)+"ms");
