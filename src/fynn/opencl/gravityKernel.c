@@ -16,11 +16,6 @@ kernel void gravity(global const float* pos, global const float* vel, global flo
     cumulX = vel[id];
     cumulY = vel[id + 1];
     cumulZ = vel[id + 2];
-
-    float xi=pos[id]; float yi=pos[id+1]; float zi = pos[id+2]; // re-use for 65536 times
-    __local xL[256]; __local yL[256]; __local zL[256];
-   //declare local mem array with constant length
-
     float dx;
     float dy;
     float dz;

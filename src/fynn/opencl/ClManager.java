@@ -59,7 +59,7 @@ public final class ClManager {
     }
     private long createGravityProgram() {
 
-        String source =  FileUtil.readFromFile("fynn/opencl/gravityKernelLocal.c");
+        String source =  FileUtil.readFromFile("fynn/opencl/gravityKernel.c");
         long clProgram = CL10.clCreateProgramWithSource(clContext, source, errcode_ret);
 
         errcode = clBuildProgram(clProgram, clDevice, "", null, NULL);
